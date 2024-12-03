@@ -24,6 +24,8 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
+builder.Services.AddScoped<JwtService>();
+
 // configuring JWT settings, these are the defaults
 builder.Services.AddAuthentication(options =>
 {
