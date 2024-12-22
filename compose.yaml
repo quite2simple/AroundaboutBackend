@@ -4,3 +4,9 @@
     build:
       context: .
       dockerfile: AuthService/Dockerfile
+
+  gatewayservice:
+    image: gatewayservice
+    build:
+      context: .
+      dockerfile: GatewayService/Dockerfile
