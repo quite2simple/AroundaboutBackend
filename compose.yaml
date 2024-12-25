@@ -10,3 +10,9 @@
     build:
       context: .
       dockerfile: GatewayService/Dockerfile
+
+  contentservice:
+    image: contentservice
+    build:
+      context: .
+      dockerfile: ContentService/Dockerfile
