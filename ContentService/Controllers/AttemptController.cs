@@ -1,14 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ContentService.Models;
+using ContentService.DTO;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ContentService.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class AttemptController : ControllerBase
@@ -41,45 +45,71 @@ namespace ContentService.Controllers
             return attempt;
         }
 
-        // PUT: api/Attempt/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutAttempt(int id, Attempt attempt)
+        [Authorize(Policy = "ExpertPolicy")]
+        [HttpPatch("check")]
+        public async Task<IActionResult> CheckAttempt([FromBody] CheckAttemptDTO dto)
         {
-            if (id != attempt.Id)
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            
+            var attempt = await _context.Attempts.FindAsync(dto.AttemptId);
+
+            if (attempt == null)
             {
                 return BadRequest();
             }
-
-            _context.Entry(attempt).State = EntityState.Modified;
-
-            try
+            
+            attempt.Checked = dto.Checked;
+            attempt.CheckedAt = DateTime.UtcNow;
+            
+            if (dto.Successful != null)
             {
-                await _context.SaveChangesAsync();
+                attempt.Successful = dto.Successful;
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!AttemptExists(id))
-                {
-                    return NotFound();
-                }
-            }
-
+            _context.Attempts.Update(attempt);
+            await _context.SaveChangesAsync();
+            
             return NoContent();
         }
 
         // POST: api/Attempt
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize]
         [HttpPost]
-        public async Task<ActionResult<Attempt>> PostAttempt(Attempt attempt)
+        public async Task<ActionResult<Attempt>> PostAttempt([FromBody] CreateAttemptDTO dto)
         {
-            _context.Attempts.Add(attempt);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            
+            var challenge = await _context.Challenges.Include(c => c.Attempts).
+                FirstOrDefaultAsync(c => c.Id == dto.ChallengeId);
+
+            if (challenge == null)
+            {
+                return BadRequest();
+            }
+            
+            var attempt = new Attempt
+            {
+                ChallengeId = dto.ChallengeId,
+                OwnerEmail = User.FindFirst(ClaimTypes.Email)?.Value,
+                Body = dto.Body,
+                Checked = false,
+                CreatedAt = DateTime.UtcNow
+            };
+            challenge.Attempts.Add(attempt);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetAttempt", new { id = attempt.Id }, attempt);
+            // return CreatedAtAction("GetAttempt", new { id = attempt.Id }, attempt);
+            return NoContent();
         }
 
         // DELETE: api/Attempt/5
+        [Authorize(Policy = "SuperAdminPolicy")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAttempt(int id)
         {

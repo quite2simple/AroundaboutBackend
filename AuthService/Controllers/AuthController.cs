@@ -75,6 +75,7 @@ public class AuthController : Controller
         // Access the claims from the JWT token
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         var userName = User.FindFirst(ClaimTypes.Name)?.Value;
+        var email = User.FindFirst(ClaimTypes.Email)?.Value;
         var roles = User.FindAll(ClaimTypes.Role).Select(r => r.Value).ToList();
 
         // Return the user info
@@ -82,6 +83,7 @@ public class AuthController : Controller
         {
             UserId = userId,
             UserName = userName,
+            Email = email,
             Roles = roles
         });
     }

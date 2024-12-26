@@ -1,14 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ContentService.Models;
+using ContentService.DTO;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ContentService.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class ChallengeController : ControllerBase
@@ -21,6 +25,7 @@ namespace ContentService.Controllers
         }
 
         // GET: api/Challenge
+        [Authorize(Policy = "AdminPolicy")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Challenge>>> GetChallenges()
         {
@@ -43,6 +48,7 @@ namespace ContentService.Controllers
 
         // PUT: api/Challenge/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Policy = "SuperAdminPolicy")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutChallenge(int id, Challenge challenge)
         {
@@ -70,9 +76,28 @@ namespace ContentService.Controllers
 
         // POST: api/Challenge
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Policy = "ExpertPolicy")]
         [HttpPost]
-        public async Task<ActionResult<Challenge>> PostChallenge(Challenge challenge)
+        public async Task<ActionResult<Challenge>> PostChallenge([FromBody] CreateChallengeDTO dto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var challenge = new Challenge
+            {
+                Name = dto.Name,
+                Description = dto.Description,
+                ModelUrl = dto.ModelURL,
+                OwnerEmail = dto.OwnerEmail
+            };
+
+            if (!ChallengeOwnedByCurrentUser(challenge))
+            {
+                return Forbid();
+            }
+            
             _context.Challenges.Add(challenge);
             await _context.SaveChangesAsync();
 
@@ -80,6 +105,7 @@ namespace ContentService.Controllers
         }
 
         // DELETE: api/Challenge/5
+        [Authorize(Policy = "ExpertPolicy")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteChallenge(int id)
         {
@@ -87,6 +113,11 @@ namespace ContentService.Controllers
             if (challenge == null)
             {
                 return NotFound();
+            }
+            
+            if (!ChallengeOwnedByCurrentUser(challenge))
+            {
+                return Forbid();
             }
 
             _context.Challenges.Remove(challenge);
@@ -98,6 +129,16 @@ namespace ContentService.Controllers
         private bool ChallengeExists(int id)
         {
             return _context.Challenges.Any(e => e.Id == id);
+        }
+
+        private bool ChallengeOwned(Challenge challenge, string email)
+        {
+            return challenge.OwnerEmail == email;
+        }
+        
+        private bool ChallengeOwnedByCurrentUser(Challenge challenge)
+        {
+            return challenge.OwnerEmail == User.FindFirst(ClaimTypes.Email)?.Value;
         }
     }
 }

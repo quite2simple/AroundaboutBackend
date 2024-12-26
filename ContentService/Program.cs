@@ -32,8 +32,16 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("ExpertPolicy", policy => policy.RequireRole("Expert"));
-    options.AddPolicy("UserPolicy", policy => policy.RequireRole("User"));
+    options.AddPolicy("UserPolicy", policy => 
+        policy.RequireRole("User", "Expert", "Moderator", "Admin", "SuperAdmin"));
+    options.AddPolicy("ExpertPolicy", policy => 
+        policy.RequireRole("Expert", "SuperAdmin"));
+    options.AddPolicy("ModeratorPolicy", policy => 
+        policy.RequireRole("Moderator", "Admin", "SuperAdmin"));
+    options.AddPolicy("AdminPolicy", policy => 
+        policy.RequireRole("Admin", "SuperAdmin"));
+    options.AddPolicy("SuperAdminPolicy", policy => 
+        policy.RequireRole("SuperAdmin"));
 });
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
