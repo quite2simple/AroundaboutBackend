@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -9,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using ContentService.Models;
 using ContentService.DTO;
 using Microsoft.AspNetCore.Authorization;
+using RabbitMQ.Client;
 
 namespace ContentService.Controllers
 {
@@ -18,10 +20,14 @@ namespace ContentService.Controllers
     public class AttemptController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private const string QueueName = "call_model";
+        private readonly IConnection _connection;
 
         public AttemptController(ApplicationDbContext context)
         {
             _context = context;
+            var factory = new ConnectionFactory { HostName = "localhost" };
+            _connection = factory.CreateConnectionAsync().Result;
         }
 
         // GET: api/Attempt
@@ -103,6 +109,12 @@ namespace ContentService.Controllers
             };
             challenge.Attempts.Add(attempt);
             await _context.SaveChangesAsync();
+            
+            var channel = await _connection.CreateChannelAsync();
+            await channel.QueueDeclareAsync(queue: QueueName, durable: false, exclusive: false, autoDelete: false, arguments: null);
+            var sendBody = Encoding.UTF8.GetBytes(attempt.Body);
+            await channel.BasicPublishAsync(exchange: "", routingKey: QueueName, body: sendBody);
+            Console.WriteLine(" [x] Sent {0}", attempt.Body);
 
             // return CreatedAtAction("GetAttempt", new { id = attempt.Id }, attempt);
             return NoContent();

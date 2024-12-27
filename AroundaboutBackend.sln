@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GatewayService", "GatewaySe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContentService", "ContentService\ContentService.csproj", "{3C66D389-B7A4-4706-96F5-E9D375F209C8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModelService", "ModelService\ModelService.csproj", "{98B1AAF5-C2E7-4965-8D58-29C4728C8F99}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,5 +31,9 @@ Global
 		{3C66D389-B7A4-4706-96F5-E9D375F209C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3C66D389-B7A4-4706-96F5-E9D375F209C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3C66D389-B7A4-4706-96F5-E9D375F209C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98B1AAF5-C2E7-4965-8D58-29C4728C8F99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98B1AAF5-C2E7-4965-8D58-29C4728C8F99}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98B1AAF5-C2E7-4965-8D58-29C4728C8F99}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98B1AAF5-C2E7-4965-8D58-29C4728C8F99}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

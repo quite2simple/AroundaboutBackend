@@ -16,3 +16,9 @@
     build:
       context: .
       dockerfile: ContentService/Dockerfile
+
+  modelservice:
+    image: modelservice
+    build:
+      context: .
+      dockerfile: ModelService/Dockerfile
