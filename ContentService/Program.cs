@@ -4,8 +4,15 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using ContentService.Models;
 using ContentService.MessageBroker;
+using Serilog;
+
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console().WriteTo.File("log-.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddSerilog();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -50,6 +57,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddHostedService<Consumer>();
 var app = builder.Build();
+
+app.UseSerilogRequestLogging();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
